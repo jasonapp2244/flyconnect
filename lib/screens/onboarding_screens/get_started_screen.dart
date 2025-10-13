@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flyconnect/const/colorconstraint.dart';
+import 'package:flyconnect/routes/routes.dart';
 import 'package:flyconnect/screens/widgets/custom_button.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({super.key});
@@ -8,53 +10,93 @@ class GetStartedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConstraint.yellowColor,
       body: Container(
         width: double.infinity,
 
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 40),
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/travel_bg.jpg'),
+            image: AssetImage('assets/images/bg.png'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
           ),
         ),
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.end, // 👈 pushes content to bottom
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Embark on a Journey',
+            Text(
+              'Let’s Get Started!',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 26,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
+                color: ColorConstraint.primaryColor,
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Connect with like-minded explorers for unforgettable adventures.\nYour next travel companion is just a click away!',
-              textAlign: TextAlign.center,
+            SizedBox(height: 10),
+            Text(
+              'Lorem Ipsum is simply dummy text',
               style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                height: 1.5,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: ColorConstraint.lightGrey,
               ),
             ),
-            const SizedBox(height: 40), // 👈 space before button
+            SizedBox(height: 40),
+            buildSignInCard(FontAwesomeIcons.google, 'Continue with google'),
+            SizedBox(height: 15),
+            buildSignInCard(FontAwesomeIcons.apple, 'Continue with apple'),
+            SizedBox(height: 15),
+            buildSignInCard(
+              FontAwesomeIcons.facebook,
+              'Continue with facebook',
+            ),
+            SizedBox(height: 130),
             CustomButton(
-              width: 120,
-              title: 'Next',
-              bgColor: ColorConstraint.primaryColor,
+              title: 'Sign Up',
               textColor: ColorConstraint.secondaryColor,
+              bgColor: ColorConstraint.primaryColor,
               onPressed: () {
-                Navigator.pushNamed(context, '/login');
+                Navigator.pushNamed(context, Routes.signup);
+              },
+            ),
+            SizedBox(height: 15),
+            CustomButton(
+              title: 'Log In',
+              textColor: ColorConstraint.secondaryColor,
+              bgColor: ColorConstraint.whiteColor,
+              onPressed: () {
+                Navigator.pushNamed(context, Routes.login);
               },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget buildSignInCard(IconData icon, String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: ColorConstraint.whiteColor),
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: TextStyle(
+              color: ColorConstraint.whiteColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

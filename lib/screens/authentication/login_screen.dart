@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flyconnect/const/colorconstraint.dart';
-import 'package:flyconnect/routes/routes.dart';
 import 'package:flyconnect/screens/widgets/custom_button.dart';
 import 'package:flyconnect/screens/widgets/custom_textfield.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class SignUpScreen extends StatefulWidget {
+class LoginScreen extends StatefulWidget {
   @override
-  State<SignUpScreen> createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<SignUpScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -38,12 +37,6 @@ class _LoginScreenState extends State<SignUpScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CustomTextField(
-                    label: 'Username',
-                    icon: Icons.email_outlined,
-                    controller: _emailController,
-                  ),
-                  const SizedBox(height: 20),
                   CustomTextField(
                     label: 'Email',
                     icon: Icons.email_outlined,

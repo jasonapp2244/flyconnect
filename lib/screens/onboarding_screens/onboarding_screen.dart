@@ -131,7 +131,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     curve: Curves.easeInOut,
                   );
                 } else {
-                  Navigator.pushNamed(context, Routes.signup);
+                  Navigator.pushNamed(context, Routes.getStarted);
                 }
               },
             ),

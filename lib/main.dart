@@ -5,7 +5,7 @@ import 'package:flyconnect/routes/routes.dart';
 void main() {
   runApp(
     MaterialApp(
-      initialRoute: Routes.onboarding,
+      initialRoute: Routes.splash,
       routes: Appages.routes,
 
       debugShowCheckedModeBanner: false,
