@@ -3,6 +3,7 @@ import 'package:flyconnect/const/colorconstraint.dart';
 import 'package:flyconnect/routes/routes.dart';
 import 'package:flyconnect/screens/widgets/custom_button.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({super.key});
@@ -42,12 +43,12 @@ class GetStartedScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 40),
-            buildSignInCard(FontAwesomeIcons.google, 'Continue with google'),
+            buildSignInCard('assets/icons/google.svg', 'Continue with google'),
             SizedBox(height: 15),
-            buildSignInCard(FontAwesomeIcons.apple, 'Continue with apple'),
+            buildSignInCard('assets/icons/apple.svg', 'Continue with apple'),
             SizedBox(height: 15),
             buildSignInCard(
-              FontAwesomeIcons.facebook,
+              'assets/icons/facebook.svg',
               'Continue with facebook',
             ),
             SizedBox(height: 130),
@@ -74,7 +75,7 @@ class GetStartedScreen extends StatelessWidget {
     );
   }
 
-  Widget buildSignInCard(IconData icon, String text) {
+  Widget buildSignInCard(String imgPath, String text) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -85,8 +86,16 @@ class GetStartedScreen extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment:
+            CrossAxisAlignment.center, // ensures icon & text align vertically
         children: [
-          Icon(icon),
+          SizedBox(
+            height: 24,
+            width: 24,
+            child: Center(
+              child: SvgPicture.asset(imgPath, fit: BoxFit.contain),
+            ),
+          ),
           const SizedBox(width: 12),
           Text(
             text,

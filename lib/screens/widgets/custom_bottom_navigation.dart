@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flyconnect/const/colorconstraint.dart';
 import 'package:flyconnect/screens/home/home_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   const CustomBottomNavBar({super.key});
@@ -23,12 +25,12 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     const Center(child: Text('Profile Screen', style: TextStyle(fontSize: 22))),
   ];
 
-  final List<IconData> icons = [
-    Icons.flight,
-    Icons.public,
-    Icons.people_alt,
-    Icons.message,
-    Icons.person,
+  final List<String> icons = [
+    'assets/icons/home.svg',
+    'assets/icons/explore.svg',
+    'assets/icons/connections.svg',
+    'assets/icons/messenger.svg',
+    'assets/icons/profile.svg',
   ];
 
   final List<String> labels = [
@@ -44,6 +46,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     return Scaffold(
       body: pages[selectedIndex], // ✅ show selected screen
       bottomNavigationBar: Container(
+        height: 100,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -58,7 +61,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(icons.length, (index) {
@@ -71,26 +74,22 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 42,
+                    height: 42,
+
+                    padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.amber : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(11),
                     ),
-                    child: Icon(
-                      icons[index],
-                      color: isSelected ? Colors.black : Colors.black54,
-                      size: 26,
-                    ),
+                    child: SvgPicture.asset(icons[index]),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     labels[index],
                     style: TextStyle(
                       fontSize: 12,
-                      color: isSelected ? Colors.black : Colors.black54,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],

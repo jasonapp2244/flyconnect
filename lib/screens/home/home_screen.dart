@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flyconnect/const/colorconstraint.dart';
+import 'package:flyconnect/screens/widgets/custom_search_field.dart';
+import 'package:flyconnect/screens/widgets/custom_travel_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,42 +25,81 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // 🔹 Drawer
       drawer: Drawer(
-        backgroundColor: ColorConstraint.redColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(0),
+            bottomRight: Radius.circular(0),
+          ),
+        ),
+        backgroundColor: ColorConstraint.redColor.withOpacity(0.75),
         child: ListView(
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.symmetric(horizontal: 20),
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: ColorConstraint.redColor),
-              child: Text(
-                'FlyConnect Menu',
-                style: TextStyle(color: Colors.white, fontSize: 20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(0),
+                color: ColorConstraint.redColor,
+                border: Border.all(
+                  width: 0,
+
+                  color: ColorConstraint.redColor.withOpacity(0.75),
+                ), // Effectively no visible border
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+
+                children: [
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundColor: ColorConstraint.whiteColor,
+                    child: Icon(
+                      Icons.close,
+                      color: ColorConstraint.secondaryColor,
+                    ),
+                  ),
+                ],
               ),
             ),
             ListTile(
-              leading: Icon(Icons.home),
+              leading: SvgPicture.asset('assets/icons/trips.svg'),
               title: Text(
-                'Home',
+                'My Trips',
                 style: TextStyle(color: Colors.white, fontSize: 20),
               ),
             ),
             ListTile(
-              leading: Icon(Icons.explore),
+              leading: SvgPicture.asset('assets/icons/group.svg'),
               title: Text(
-                'Explore',
+                'Groups',
                 style: TextStyle(color: Colors.white, fontSize: 20),
               ),
             ),
             ListTile(
-              leading: Icon(Icons.people_alt),
+              leading: SvgPicture.asset('assets/icons/notification.svg'),
+
               title: Text(
-                'Connections',
+                'Notifications',
                 style: TextStyle(color: Colors.white, fontSize: 20),
               ),
             ),
             ListTile(
-              leading: Icon(Icons.settings),
+              leading: SvgPicture.asset('assets/icons/setting.svg'),
               title: Text(
                 'Settings',
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ),
+            ListTile(
+              leading: SvgPicture.asset('assets/icons/phone.svg'),
+              title: Text(
+                'Help & Support',
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ),
+            ListTile(
+              leading: SvgPicture.asset('assets/icons/logout.svg'),
+              title: Text(
+                'Logout',
                 style: TextStyle(color: Colors.white, fontSize: 20),
               ),
             ),
@@ -72,10 +113,14 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TravelPostWidget(
+              CustomSearchField(
+                hintTitle: "where we're going next?",
+                imgPath: 'assets/icons/plane_searchbar.svg',
+              ),
+              CustomTravelPostWidget(
                 name: "Joanna Doe",
                 location: "Currently in Stockholm",
-                profileImage: "assets/images/joana_avatar.png",
+                profileImage: "assets/icons/joana_avatar.png",
                 postImage: "assets/images/tale.png",
                 title: "My favorite travel memory..",
                 description:
@@ -88,140 +133,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class TravelPostWidget extends StatelessWidget {
-  final String name;
-  final String location;
-  final String profileImage;
-  final String postImage;
-  final String title;
-  final String description;
-  final VoidCallback onMenuTap;
-
-  const TravelPostWidget({
-    super.key,
-    required this.name,
-    required this.location,
-    required this.profileImage,
-    required this.postImage,
-    required this.title,
-    required this.description,
-    required this.onMenuTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 🔹 Top Row: Logo + Icons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Image.asset(
-              'assets/images/flyconnect.png',
-              width: 100,
-              height: 100,
-            ),
-            Row(
-              children: [
-                SvgPicture.asset('assets/icons/notification.svg'),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: onMenuTap,
-                  child: SvgPicture.asset('assets/icons/hamburger.svg'),
-                ),
-              ],
-            ),
-          ],
-        ),
-
-        Text(
-          name,
-          style: const TextStyle(
-            color: Colors.cyanAccent,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          location,
-          style: const TextStyle(color: Colors.white70, fontSize: 16),
-        ),
-        const SizedBox(height: 16),
-
-        // 🔹 Post Image Card
-        Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(postImage, fit: BoxFit.cover),
-            ),
-            Positioned(
-              left: 10,
-              top: 10,
-              child: CircleAvatar(
-                radius: 20,
-                backgroundImage: AssetImage(profileImage),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // 🔹 Caption
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.cyanAccent,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          description,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // 🔹 Like / Comment / Share
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: const [
-            _PostAction(icon: Icons.thumb_up_alt_outlined, label: 'Like'),
-            _PostAction(icon: Icons.comment_outlined, label: 'Comment'),
-            _PostAction(icon: Icons.share_outlined, label: 'Share'),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _PostAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _PostAction({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.white70, size: 20),
-        const SizedBox(width: 5),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
-        ),
-      ],
     );
   }
 }

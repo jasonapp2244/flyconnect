@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import 'package:flyconnect/screens/get_started_splash_screen.dart'; // <-- replace with your actual next screen
+import 'package:flyconnect/screens/onboarding_screens/get_started_splash_screen.dart'; // <-- replace with your actual next screen
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
 
     // ⏳ Wait for 3 seconds, then navigate
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 5), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
