@@ -1,10 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flyconnect/const/colorconstraint.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flyconnect/const/colorconstraint.dart';
 
 import 'package:flyconnect/screens/get_started_splash_screen.dart'; // <-- replace with your actual next screen
 

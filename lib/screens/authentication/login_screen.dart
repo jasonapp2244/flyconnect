@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flyconnect/const/colorconstraint.dart';
+import 'package:flyconnect/routes/routes.dart';
 import 'package:flyconnect/screens/widgets/custom_button.dart';
 import 'package:flyconnect/screens/widgets/custom_textfield.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -98,7 +99,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     title: 'Log In',
                     textColor: ColorConstraint.secondaryColor,
                     bgColor: ColorConstraint.primaryColor,
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushNamed(context, Routes.home);
+                    },
                   ),
                   const SizedBox(height: 30),
                   Text(
