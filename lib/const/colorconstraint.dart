@@ -8,4 +8,5 @@ class ColorConstraint {
   static Color redColor = Color(0XFFFF0000);
   static Color lightGrey = Color(0xffDADADA);
   static Color lightWhiteColor = Color(0xfffffffff);
+  static Color textColor = Colors.black;
 }

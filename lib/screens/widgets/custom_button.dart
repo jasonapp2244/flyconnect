@@ -10,6 +10,10 @@ class CustomButton extends StatelessWidget {
   final double height;
   final double? width;
 
+  // 👇 new optional border properties
+  final Color? borderColor;
+  final double borderWidth;
+
   const CustomButton({
     super.key,
     required this.title,
@@ -17,9 +21,11 @@ class CustomButton extends StatelessWidget {
     required this.onPressed,
     this.textColor,
     this.borderRadius = 12,
-    this.fontSize = 16,
+    this.fontSize = 14,
     this.height = 40,
     this.width,
+    this.borderColor,       // optional
+    this.borderWidth = 1.5, // optional default
   });
 
   @override
@@ -32,6 +38,9 @@ class CustomButton extends StatelessWidget {
           backgroundColor: bgColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
+            side: borderColor != null
+                ? BorderSide(color: borderColor!, width: borderWidth)
+                : BorderSide.none, // 👈 only show border if color provided
           ),
           elevation: 3,
         ),
