@@ -3,6 +3,7 @@ import 'package:flyconnect/const/colorconstraint.dart';
 import 'package:flyconnect/routes/routes.dart';
 import 'package:flyconnect/screens/widgets/custom_button.dart';
 import 'package:flyconnect/screens/widgets/custom_textfield.dart';
+import 'package:flyconnect/utils/responsive.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final resp = Responsive.init(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: ConstrainedBox(
@@ -43,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     icon: Icons.email_outlined,
                     controller: _emailController,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   CustomTextField(
                     label: 'Password',
                     icon: Icons.lock_outline,

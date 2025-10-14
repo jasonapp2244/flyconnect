@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flyconnect/const/colorconstraint.dart';
+import 'package:flyconnect/screens/explore_screen.dart';
 import 'package:flyconnect/screens/home/home_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -15,7 +16,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
 
   final List<Widget> pages = [
     HomeScreen(),
-    const Center(child: Text('Explore Screen', style: TextStyle(fontSize: 22))),
+    ExploreView(),
     const Center(
       child: Text('Connections Screen', style: TextStyle(fontSize: 22)),
     ),
