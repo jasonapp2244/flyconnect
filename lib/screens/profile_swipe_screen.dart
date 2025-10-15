@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flyconnect/const/colorconstraint.dart';
 import 'package:flyconnect/utils/responsive.dart';
@@ -12,9 +14,60 @@ class ProfileSwipeScreen extends StatefulWidget {
   State<ProfileSwipeScreen> createState() => _ProfileSwipeScreenState();
 }
 
-class _ProfileSwipeScreenState extends State<ProfileSwipeScreen> {
+class _ProfileSwipeScreenState extends State<ProfileSwipeScreen>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isSwiping = true;
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+  AnimationController? _progressController;
+  var profileImages = ['assets/images/david.png','assets/images/joly.png','assets/images/david_avatar.png'];
+  @override
+  void initState() {
+    super.initState();
+
+    _progressController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 5))
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              _goToNextReel();
+            }
+          });
+
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _progressController?.forward(from: 0);
+    _timer = Timer(const Duration(seconds: 5), _goToNextReel);
+  }
+
+  void _goToNextReel() {
+    if (_currentPage < profileImages.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _pageController.jumpToPage(0); // Loop back to first reel
+    }
+  }
+
+  void _onPageChanged(int index) {
+    setState(() => _currentPage = index);
+    _timer?.cancel();
+    _progressController?.stop();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _progressController?.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +134,8 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildSegmentedButton('Save', !isSwiping),
-                    _buildSegmentedButton('Swiping', isSwiping),
+                    _buildSegmentedButton('Social', !isSwiping),
+                    _buildSegmentedButton('Date', isSwiping),
                   ],
                 ),
               ),
@@ -138,14 +191,14 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen> {
         _buildProfileCard(
           name: 'Lily 18',
           airline: 'Emirates',
-          imagePath: 'assets/images/lily_avatar.png',
+          imagePath: 'assets/images/david.png',
           tags: ['Adventurous', 'Food & Drink', 'Musician'],
         ),
         SizedBox(height: Responsive.h(3)),
         _buildProfileCard(
           name: 'Joly 32',
           airline: 'flydubai',
-          imagePath: 'assets/images/joly_avatar.png',
+          imagePath: 'assets/images/joly.png',
           tags: ['Adventurous', 'Food & Drink', 'Musician'],
         ),
         SizedBox(height: Responsive.h(3)),
@@ -166,7 +219,7 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen> {
     required List<String> tags,
   }) {
     return Container(
-      height: Responsive.h(35), // ✅ Adjusted height
+      height: Responsive.h(70), // ✅ Adjusted height
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: ColorConstraint.yellowColor, width: 2),
@@ -185,7 +238,7 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen> {
             Positioned.fill(
               child: Image.asset(
                 imagePath,
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: Colors.grey[800],
@@ -228,32 +281,9 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen> {
                 ),
               ),
             ),
-            // Positioned(
-            //   bottom: Responsive.h(12),
-            //   left: Responsive.w(4),
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       Text(
-            //         name,
-            //         style: TextStyle(
-            //           color: Colors.white,
-            //           fontSize: Responsive.sp(20),
-            //           fontWeight: FontWeight.bold,
-            //         ),
-            //       ),
-            //       Text(
-            //         airline,
-            //         style: TextStyle(
-            //           color: Colors.white.withOpacity(0.8),
-            //           fontSize: Responsive.sp(14),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
+
             Positioned(
-              top: Responsive.h(8),
+              bottom: Responsive.h(8),
               right: Responsive.w(4),
               child: Column(
                 children: [
