@@ -22,7 +22,11 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen>
   int _currentPage = 0;
   Timer? _timer;
   AnimationController? _progressController;
-  var profileImages = ['assets/images/david.png','assets/images/joly.png','assets/images/david_avatar.png'];
+  var profileImages = [
+    'assets/images/david.png',
+    'assets/images/joly.png',
+    'assets/images/david_avatar.png',
+  ];
   @override
   void initState() {
     super.initState();
@@ -73,37 +77,45 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen>
   Widget build(BuildContext context) {
     Responsive.init(context);
     return SafeArea(
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/bg.png',
-              fit: BoxFit.cover,
-              colorBlendMode: BlendMode.darken,
-            ),
-          ),
-          Scaffold(
-            backgroundColor: Colors.transparent,
-            key: _scaffoldKey,
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(5),
-                  vertical: Responsive.h(2),
-                ),
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    SizedBox(height: Responsive.h(3)),
-                    _buildProfileCardsStack(),
-                    SizedBox(height: Responsive.h(4)),
-                    _buildInterestsSection(),
-                  ],
+      child: PageView.builder(
+        controller: _pageController,
+        scrollDirection: Axis.vertical,
+        onPageChanged: _onPageChanged,
+        itemCount: profileImages.length,
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/bg.png',
+                  fit: BoxFit.cover,
+                  colorBlendMode: BlendMode.darken,
                 ),
               ),
-            ),
-          ),
-        ],
+              Scaffold(
+                backgroundColor: Colors.transparent,
+                key: _scaffoldKey,
+                body: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.w(5),
+                      vertical: Responsive.h(2),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildHeader(),
+                        SizedBox(height: Responsive.h(3)),
+                        _buildProfileCardsStack(profileImages[index]),
+                        SizedBox(height: Responsive.h(4)),
+                        _buildInterestsSection(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -185,27 +197,27 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen>
   }
 
   /// ✅ Updated to show profile cards vertically
-  Widget _buildProfileCardsStack() {
+  Widget _buildProfileCardsStack(String profileImages) {
     return Column(
       children: [
         _buildProfileCard(
           name: 'Lily 18',
           airline: 'Emirates',
-          imagePath: 'assets/images/david.png',
+          imagePath: profileImages,
           tags: ['Adventurous', 'Food & Drink', 'Musician'],
         ),
         SizedBox(height: Responsive.h(3)),
         _buildProfileCard(
           name: 'Joly 32',
           airline: 'flydubai',
-          imagePath: 'assets/images/joly.png',
+          imagePath: profileImages,
           tags: ['Adventurous', 'Food & Drink', 'Musician'],
         ),
         SizedBox(height: Responsive.h(3)),
         _buildProfileCard(
           name: 'David 42',
           airline: 'Air Arabia',
-          imagePath: 'assets/images/david_avatar.png',
+          imagePath: profileImages,
           tags: ['Adventurous', 'Food & Drink', 'Hiking'],
         ),
       ],
