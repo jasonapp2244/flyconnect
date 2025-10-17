@@ -4,8 +4,10 @@ import 'package:flyconnect/screens/explore_screen.dart';
 import 'package:flyconnect/screens/home/home_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flyconnect/screens/messages/messages_screen.dart';
+import 'package:flyconnect/screens/nearby_users_screen.dart';
 import 'package:flyconnect/screens/profile_screen.dart';
 import 'package:flyconnect/screens/profile_swipe_screen.dart';
+import 'package:flyconnect/screens/add_trip_screen.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
   const CustomBottomNavBar({super.key});
@@ -22,7 +24,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     ExploreView(),
     ProfileSwipeScreen(),
     InboxScreen(),
-    ProfileScreen(),
+    AddTripScreen(),
   ];
 
   final List<String> icons = [
@@ -38,7 +40,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     "Explore",
     "Connections",
     "Messenger",
-    "Profile",
+    "Add Trip",
   ];
 
   @override
