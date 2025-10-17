@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter/material.dart';
 import 'package:flyconnect/const/colorconstraint.dart';
+import 'package:flyconnect/utils/responsive.dart';
 
 class CustomTravelPostWidget extends StatelessWidget {
   final String name;
@@ -29,38 +30,20 @@ class CustomTravelPostWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 🔹 Top Row: Logo + Icons
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Image.asset(
-              'assets/images/flyconnect.png',
-              width: 100,
-              height: 100,
-            ),
-            Row(
-              children: [
-                SvgPicture.asset('assets/icons/notification.svg'),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: onMenuTap,
-                  child: SvgPicture.asset('assets/icons/hamburger.svg'),
-                ),
-              ],
-            ),
-          ],
-        ),
-
         Text(
           name,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.cyanAccent,
-            fontSize: 22,
+            fontSize: Responsive.sp(20),
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           location,
-          style: const TextStyle(color: Colors.white70, fontSize: 16),
+          style: TextStyle(
+            color: ColorConstraint.whiteColor,
+            fontSize: Responsive.sp(13),
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -100,16 +83,16 @@ class CustomTravelPostWidget extends StatelessWidget {
           title,
           style: TextStyle(
             color: ColorConstraint.primaryColor,
-            fontSize: 24,
+            fontSize: Responsive.sp(20),
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           description,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: Responsive.sp(13),
             height: 1.4,
           ),
         ),

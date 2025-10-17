@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final resp = Responsive.init(context);
+    Responsive.init(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: ConstrainedBox(
@@ -32,27 +32,44 @@ class _LoginScreenState extends State<LoginScreen> {
               image: DecorationImage(
                 image: AssetImage('assets/images/bg.png'),
                 fit: BoxFit.cover, // ✅ Cover the full screen properly
-                colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Text(
+                    'Email',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: Responsive.sp(13),
+                    ),
+                  ),
+                  SizedBox(height: 5),
                   CustomTextField(
                     label: 'Email',
                     icon: Icons.email_outlined,
                     controller: _emailController,
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: Responsive.h(1)),
+                  Text(
+                    'Password',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: Responsive.sp(13),
+                    ),
+                  ),
+                  SizedBox(height: 5),
+
                   CustomTextField(
                     label: 'Password',
                     icon: Icons.lock_outline,
                     controller: _passwordController,
                     suffixIcon: Icons.visibility,
                   ),
-                  const SizedBox(height: 15),
+                  SizedBox(height: Responsive.h(2)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -96,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30),
+                  SizedBox(height: Responsive.h(4)),
                   CustomButton(
                     title: 'Log In',
                     textColor: ColorConstraint.secondaryColor,
@@ -105,26 +122,31 @@ class _LoginScreenState extends State<LoginScreen> {
                       Navigator.pushNamed(context, Routes.home);
                     },
                   ),
-                  const SizedBox(height: 30),
-                  Text(
-                    'Or Create account using social media',
-                    style: TextStyle(
-                      color: ColorConstraint.whiteColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                    ),
+                  SizedBox(height: Responsive.h(3)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Or Create account using social media',
+                        style: TextStyle(
+                          color: ColorConstraint.whiteColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 30),
+                  SizedBox(height: Responsive.h(3)),
                   buildSignInCard(
                     FontAwesomeIcons.google,
                     'Continue with Google',
                   ),
-                  const SizedBox(height: 15),
+                  SizedBox(height: Responsive.h(2)),
                   buildSignInCard(
                     FontAwesomeIcons.apple,
                     'Continue with Apple',
                   ),
-                  const SizedBox(height: 15),
+                  SizedBox(height: Responsive.h(2)),
                   buildSignInCard(
                     FontAwesomeIcons.facebook,
                     'Continue with Facebook',

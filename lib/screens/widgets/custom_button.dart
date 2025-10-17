@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flyconnect/utils/responsive.dart';
 
 class CustomButton extends StatelessWidget {
   final String title;
@@ -14,17 +15,17 @@ class CustomButton extends StatelessWidget {
   final Color? borderColor;
   final double borderWidth;
 
-  const CustomButton({
+  CustomButton({
     super.key,
     required this.title,
     required this.bgColor,
     required this.onPressed,
     this.textColor,
     this.borderRadius = 12,
-    this.fontSize = 14,
-    this.height = 40,
+    this.fontSize = 16,
+    this.height = 50,
     this.width,
-    this.borderColor,       // optional
+    this.borderColor, // optional
     this.borderWidth = 1.5, // optional default
   });
 

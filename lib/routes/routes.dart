@@ -8,4 +8,5 @@ class Routes {
   static const String group = '/group';
   static const String eventDetail = '/eventDetail';
   static const String profileSwipe = '/profileSwipe';
+  static const String editProfile = '/editProfile';
 }

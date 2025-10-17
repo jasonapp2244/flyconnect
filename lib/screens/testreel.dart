@@ -25,27 +25,26 @@ class _ReelsScreenState extends State<ReelsScreen>
   void initState() {
     super.initState();
 
-    _progressController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          _goToNextReel();
-        }
-      });
+    _progressController =
+        AnimationController(vsync: this, duration: Duration(seconds: 5))
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              _goToNextReel();
+            }
+          });
 
     _startTimer();
   }
 
   void _startTimer() {
     _progressController?.forward(from: 0);
-    _timer = Timer(const Duration(seconds: 5), _goToNextReel);
+    _timer = Timer(Duration(seconds: 5), _goToNextReel);
   }
 
   void _goToNextReel() {
     if (_currentPage < _reels.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
@@ -88,7 +87,10 @@ class _ReelsScreenState extends State<ReelsScreen>
                     child: Center(
                       child: Text(
                         "Reel ${index + 1}",
-                        style: const TextStyle(color: Colors.white, fontSize: 30),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                        ),
                       ),
                     ),
                   ),

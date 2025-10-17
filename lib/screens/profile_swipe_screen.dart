@@ -2,10 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flyconnect/const/colorconstraint.dart';
-import 'package:flyconnect/utils/responsive.dart';
+import 'package:flyconnect/provider/profile_swiping_provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flyconnect/provider/social_feed_provider.dart';
+import 'package:provider/provider.dart';
+
+// profile_swipe_screen.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flyconnect/const/colorconstraint.dart';
-import 'package:flyconnect/utils/responsive.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class ProfileSwipeScreen extends StatefulWidget {
   const ProfileSwipeScreen({super.key});
@@ -15,479 +22,583 @@ class ProfileSwipeScreen extends StatefulWidget {
 }
 
 class _ProfileSwipeScreenState extends State<ProfileSwipeScreen>
-    with SingleTickerProviderStateMixin {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool isSwiping = true;
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
-  Timer? _timer;
-  AnimationController? _progressController;
-  var profileImages = [
-    'assets/images/david.png',
-    'assets/images/joly.png',
-    'assets/images/david_avatar.png',
-  ];
-  @override
-  void initState() {
-    super.initState();
-
-    _progressController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 5))
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) {
-              _goToNextReel();
-            }
-          });
-
-    _startTimer();
-  }
-
-  void _startTimer() {
-    _progressController?.forward(from: 0);
-    _timer = Timer(const Duration(seconds: 5), _goToNextReel);
-  }
-
-  void _goToNextReel() {
-    if (_currentPage < profileImages.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      _pageController.jumpToPage(0); // Loop back to first reel
-    }
-  }
-
-  void _onPageChanged(int index) {
-    setState(() => _currentPage = index);
-    _timer?.cancel();
-    _progressController?.stop();
-    _startTimer();
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _progressController?.dispose();
-    _pageController.dispose();
-    super.dispose();
-  }
+    with TickerProviderStateMixin {
+  bool _isDatingMode = true; // toggle between Dating and Social
 
   @override
   Widget build(BuildContext context) {
-    Responsive.init(context);
-    return SafeArea(
-      child: PageView.builder(
-        controller: _pageController,
-        scrollDirection: Axis.vertical,
-        onPageChanged: _onPageChanged,
-        itemCount: profileImages.length,
-        itemBuilder: (context, index) {
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: Image.asset(
-                  'assets/images/bg.png',
-                  fit: BoxFit.cover,
-                  colorBlendMode: BlendMode.darken,
-                ),
-              ),
-              Scaffold(
-                backgroundColor: Colors.transparent,
-                key: _scaffoldKey,
-                body: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.w(5),
-                      vertical: Responsive.h(2),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildHeader(),
-                        SizedBox(height: Responsive.h(3)),
-                        _buildProfileCardsStack(profileImages[index]),
-                        SizedBox(height: Responsive.h(4)),
-                        _buildInterestsSection(),
-                      ],
-                    ),
+    // ProfileSwipeProvider still created here (as before)
+    return ChangeNotifierProvider(
+      create: (_) => ProfileSwipeProvider(this),
+      builder: (context, child) {
+        final provider = context.watch<ProfileSwipeProvider>();
+
+        return Scaffold(
+          appBar: _buildAppBar(),
+          backgroundColor: Colors.blue.shade800,
+          // if Social mode, wrap with SocialFeedProvider for local posts
+          body: _isDatingMode
+              ? Stack(
+                  children: [
+                    _buildPageView(provider),
+                    _buildProgressBar(provider),
+                  ],
+                )
+              : ChangeNotifierProvider(
+                  create: (_) => SocialFeedProvider(),
+                  child: _SocialFeedWidget(
+                    onCreateTap: _showCreatePostSheet,
+                    themeBlue: true,
                   ),
                 ),
+        );
+      },
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          _buildModeToggle(),
+          _buildProfileIcon(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white, width: 1),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => setState(() => _isDatingMode = false),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: !_isDatingMode
+                    ? Colors.white.withOpacity(0.2)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(11),
               ),
-            ],
+              child: const Text(
+                'Social',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xffB2B2B2),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => setState(() => _isDatingMode = true),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: _isDatingMode
+                    ? ColorConstraint.redColor
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: const Text(
+                'Dating',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xffB2B2B2),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileIcon() {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        image: const DecorationImage(
+          image: AssetImage('assets/images/profile_pic.png'),
+          fit: BoxFit.cover,
+        ),
+        border: Border.all(color: Colors.blueAccent, width: 2),
+      ),
+    );
+  }
+
+  Widget _buildPageView(ProfileSwipeProvider provider) {
+    const double horizontalPadding = 16.0;
+    return PageView.builder(
+      controller: provider.pageController,
+      scrollDirection: Axis.vertical,
+      onPageChanged: provider.onPageChanged,
+      itemCount: provider.profiles.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: _buildProfileCard(provider.profiles[index]),
+        );
+      },
+    );
+  }
+
+  Widget _buildProgressBar(ProfileSwipeProvider provider) {
+    return Positioned(
+      top: 30,
+      left: 16,
+      right: 16,
+      child: AnimatedBuilder(
+        animation: provider.progressController,
+        builder: (context, child) {
+          return LinearProgressIndicator(
+            value: provider.progressController.value,
+            color: ColorConstraint.primaryColor,
+            backgroundColor: Colors.white.withOpacity(0.3),
+            minHeight: 4,
           );
         },
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      child: Row(
+  Widget _buildProfileCard(Map<String, dynamic> profile) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Image.asset(profile['image'], fit: BoxFit.cover),
+        ),
+        Positioned(
+          top: 60,
+          left: 10,
+          child: SvgPicture.asset('assets/icons/connections.svg', width: 50),
+        ),
+        _buildProfileInfo(profile),
+        _buildActionButtons(),
+      ],
+    );
+  }
+
+  Widget _buildProfileInfo(Map<String, dynamic> profile) {
+    return Positioned(
+      bottom: 200,
+      left: 0,
+      right: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Icon(
-              Icons.arrow_back_ios,
-              color: ColorConstraint.primaryColor,
-              size: Responsive.sp(20),
+          Text(
+            "${profile['name']} ${profile['age']}",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          Expanded(
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(20),
+          const SizedBox(height: 4),
+          Text(
+            profile['airline'],
+            style: const TextStyle(color: Colors.white70, fontSize: 18),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            children: profile['tags'].map<Widget>((tag) {
+              Color bgColor;
+              final lower = tag.toLowerCase();
+              if (lower.contains('adventurous')) {
+                bgColor = ColorConstraint.primaryColor;
+              } else if (lower.contains('food')) {
+                bgColor = ColorConstraint.yellowColor;
+              } else if (lower.contains('music') || lower.contains('hiking')) {
+                bgColor = Colors.grey;
+              } else {
+                bgColor = Colors.grey.withOpacity(0.7);
+              }
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
                 ),
-                child: Row(
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  tag,
+                  style: TextStyle(
+                    color: ColorConstraint.textColor,
+                    fontSize: 14,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Positioned(
+      bottom: 30,
+      left: 0,
+      right: 0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _actionButton("Travel Buddy", ColorConstraint.secondaryColor),
+          const SizedBox(width: 10),
+          _actionButton("Date Me", ColorConstraint.redColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionButton(String text, Color color) {
+    return ElevatedButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.withOpacity(0.7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Text(text, style: const TextStyle(color: Colors.white)),
+    );
+  }
+
+  // ---------- Social creation sheet ----------
+  Future<void> _showCreatePostSheet() async {
+    final socialProvider = Provider.of<SocialFeedProvider>(
+      context,
+      listen: false,
+    );
+    final ImagePicker picker = ImagePicker();
+    File? selectedImage;
+    final captionController = TextEditingController();
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildSegmentedButton('Social', !isSwiping),
-                    _buildSegmentedButton('Date', isSwiping),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Create Post",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(ctx).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () async {
+                        final XFile? picked = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 80,
+                        );
+                        if (picked != null) {
+                          setState(() => selectedImage = File(picked.path));
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.grey[200],
+                        ),
+                        child: selectedImage == null
+                            ? const Center(
+                                child: Text("Tap to pick image (optional)"),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  selectedImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: captionController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        hintText: "Write a caption...",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final text = captionController.text.trim();
+                              socialProvider.addPost(
+                                user: "You",
+                                imageFile: selectedImage,
+                                caption: text,
+                              );
+                              Navigator.of(ctx).pop();
+                            },
+                            child: const Text("Post"),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ---------------- Social Feed widget ----------------
+
+class _SocialFeedWidget extends StatelessWidget {
+  final void Function() onCreateTap;
+  final bool themeBlue;
+  const _SocialFeedWidget({
+    required this.onCreateTap,
+    this.themeBlue = false,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SocialFeedProvider>(
+      builder: (context, feed, _) {
+        return Scaffold(
+          backgroundColor: themeBlue ? Colors.blue.shade50 : Colors.white,
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: ColorConstraint.primaryColor,
+            onPressed: onCreateTap,
+            child: const Icon(Icons.add),
+          ),
+          body: ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: feed.posts.length,
+            itemBuilder: (context, idx) {
+              final post = feed.posts[idx];
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.grey[300],
+                        child: Text(post.user.isNotEmpty ? post.user[0] : "U"),
+                      ),
+                      title: Text(
+                        post.user,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(_formatTime(post.createdAt)),
+                      trailing: PopupMenuButton<String>(
+                        onSelected: (v) {
+                          if (v == 'delete')
+                            Provider.of<SocialFeedProvider>(
+                              context,
+                              listen: false,
+                            ).deletePost(post.id);
+                        },
+                        itemBuilder: (_) => [
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (post.imageFile != null)
+                      Image.file(
+                        post.imageFile!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 260,
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Text(post.caption),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              post.isLikedByMe
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: post.isLikedByMe
+                                  ? Colors.red
+                                  : Colors.black54,
+                            ),
+                            onPressed: () => Provider.of<SocialFeedProvider>(
+                              context,
+                              listen: false,
+                            ).toggleLike(post.id),
+                          ),
+                          Text('${post.likes}'),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            icon: const Icon(Icons.comment_outlined),
+                            onPressed: () => _showCommentsSheet(context, post),
+                          ),
+                          Text('${post.comments.length}'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  static String _formatTime(DateTime t) {
+    final diff = DateTime.now().difference(t);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    return '${diff.inDays}d';
+  }
+
+  void _showCommentsSheet(BuildContext context, Post post) {
+    final commentController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Comments',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Flexible(
+                child: Consumer<SocialFeedProvider>(
+                  builder: (context, feed, _) {
+                    final postFromProvider = feed.posts.firstWhere(
+                      (p) => p.id == post.id,
+                    );
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: postFromProvider.comments.length,
+                      itemBuilder: (context, i) {
+                        final c = postFromProvider.comments[i];
+                        return ListTile(
+                          title: Text(c['user'] ?? ''),
+                          subtitle: Text(c['text'] ?? ''),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: commentController,
+                        decoration: const InputDecoration(
+                          hintText: 'Write a comment',
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () {
+                        final text = commentController.text.trim();
+                        if (text.isNotEmpty) {
+                          Provider.of<SocialFeedProvider>(
+                            context,
+                            listen: false,
+                          ).addComment(post.id, "You", text);
+                          commentController.clear();
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-          Container(
-            width: Responsive.w(10),
-            height: Responsive.w(10),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: ColorConstraint.primaryColor,
-            ),
-            child: Icon(
-              Icons.person,
-              color: Colors.white,
-              size: Responsive.sp(16),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSegmentedButton(String text, bool isSelected) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          isSwiping = text == 'Swiping';
-        });
+        );
       },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.red : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: Responsive.sp(12),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// ✅ Updated to show profile cards vertically
-  Widget _buildProfileCardsStack(String profileImages) {
-    return Column(
-      children: [
-        _buildProfileCard(
-          name: 'Lily 18',
-          airline: 'Emirates',
-          imagePath: profileImages,
-          tags: ['Adventurous', 'Food & Drink', 'Musician'],
-        ),
-        SizedBox(height: Responsive.h(3)),
-        _buildProfileCard(
-          name: 'Joly 32',
-          airline: 'flydubai',
-          imagePath: profileImages,
-          tags: ['Adventurous', 'Food & Drink', 'Musician'],
-        ),
-        SizedBox(height: Responsive.h(3)),
-        _buildProfileCard(
-          name: 'David 42',
-          airline: 'Air Arabia',
-          imagePath: profileImages,
-          tags: ['Adventurous', 'Food & Drink', 'Hiking'],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProfileCard({
-    required String name,
-    required String airline,
-    required String imagePath,
-    required List<String> tags,
-  }) {
-    return Container(
-      height: Responsive.h(70), // ✅ Adjusted height
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: ColorConstraint.yellowColor, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(13),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.fill,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[800],
-                    child: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: Responsive.sp(60),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.1),
-                      Colors.black.withOpacity(0.7),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: Responsive.h(2),
-              left: Responsive.w(4),
-              child: Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.favorite,
-                  color: Colors.white,
-                  size: Responsive.sp(16),
-                ),
-              ),
-            ),
-
-            Positioned(
-              bottom: Responsive.h(8),
-              right: Responsive.w(4),
-              child: Column(
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: Responsive.sp(20),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    airline,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: Responsive.sp(14),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: tags.map((tag) {
-                      Color tagColor = _getTagColor(tag);
-                      return Container(
-                        margin: EdgeInsets.only(bottom: Responsive.h(1)),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: Responsive.w(3),
-                          vertical: Responsive.h(0.5),
-                        ),
-                        decoration: BoxDecoration(
-                          color: tagColor,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Text(
-                          tag,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: Responsive.sp(10),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-              bottom: Responsive.h(2),
-              left: Responsive.w(4),
-              right: Responsive.w(4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: Responsive.h(5),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Travel Buddy selected!'),
-                              backgroundColor: ColorConstraint.primaryColor,
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ColorConstraint.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          'Travel Buddy',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: Responsive.sp(12),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: Responsive.w(2)),
-                  Expanded(
-                    child: SizedBox(
-                      height: Responsive.h(5),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Date Me selected!'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          'Date Me',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: Responsive.sp(12),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _getTagColor(String tag) {
-    switch (tag) {
-      case 'Adventurous':
-        return ColorConstraint.primaryColor;
-      case 'Food & Drink':
-        return ColorConstraint.yellowColor;
-      default:
-        return Colors.white.withOpacity(0.9);
-    }
-  }
-
-  Widget _buildInterestsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.list_alt,
-              color: ColorConstraint.primaryColor,
-              size: Responsive.sp(18),
-            ),
-            SizedBox(width: Responsive.w(2)),
-            Text(
-              'Interests',
-              style: TextStyle(
-                color: ColorConstraint.primaryColor,
-                fontSize: Responsive.sp(16),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: Responsive.h(2)),
-        Wrap(
-          spacing: Responsive.w(2),
-          runSpacing: Responsive.h(1),
-          children:
-              [
-                'Camping',
-                'Curry',
-                'Socials',
-                'Somewhere',
-                'Want someday',
-                'Christian/Other',
-                'Koran',
-                'Movie',
-                'Socials',
-                'Bachelor\'s Degree',
-              ].map((interest) {
-                return Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.w(3),
-                    vertical: Responsive.h(0.8),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    interest,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: Responsive.sp(11),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                );
-              }).toList(),
-        ),
-      ],
     );
   }
 }

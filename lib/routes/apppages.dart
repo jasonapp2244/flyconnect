@@ -3,6 +3,7 @@ import 'package:flyconnect/group_screen.dart';
 import 'package:flyconnect/screens/authentication/login_screen.dart';
 import 'package:flyconnect/screens/authentication/signup_screen.dart';
 import 'package:flyconnect/screens/event_detail_screen.dart';
+import 'package:flyconnect/screens/home/edit_profile_screen.dart';
 import 'package:flyconnect/screens/onboarding_screens/get_started_screen.dart';
 import 'package:flyconnect/screens/onboarding_screens/onboarding_screen.dart';
 import 'package:flyconnect/screens/onboarding_screens/splash_screen.dart';
@@ -20,6 +21,7 @@ class Appages {
     Routes.login: (context) => LoginScreen(),
     Routes.splash: (context) => SplashScreen(),
     Routes.group: (context) => GroupScreen(),
+    Routes.editProfile: (context) => EditProfileScreen(),
     Routes.eventDetail: (context) {
       final args =
           ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;

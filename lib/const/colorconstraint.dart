@@ -7,6 +7,6 @@ class ColorConstraint {
   static Color whiteColor = const Color.fromARGB(255, 255, 254, 254);
   static Color redColor = Color(0XFFFF0000);
   static Color lightGrey = Color(0xffDADADA);
-  static Color lightWhiteColor = Color(0xfffffffff);
+  static Color lightWhiteColor = Colors.white;
   static Color textColor = Colors.black;
 }

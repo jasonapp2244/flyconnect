@@ -3,6 +3,8 @@ import 'package:flyconnect/const/colorconstraint.dart';
 import 'package:flyconnect/screens/explore_screen.dart';
 import 'package:flyconnect/screens/home/home_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flyconnect/screens/messages/messages_screen.dart';
+import 'package:flyconnect/screens/profile_screen.dart';
 import 'package:flyconnect/screens/profile_swipe_screen.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
@@ -19,10 +21,8 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     HomeScreen(),
     ExploreView(),
     ProfileSwipeScreen(),
-    const Center(
-      child: Text('Messenger Screen', style: TextStyle(fontSize: 22)),
-    ),
-    const Center(child: Text('Profile Screen', style: TextStyle(fontSize: 22))),
+    InboxScreen(),
+    ProfileScreen(),
   ];
 
   final List<String> icons = [
@@ -61,7 +61,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(icons.length, (index) {

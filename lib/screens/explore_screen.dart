@@ -25,7 +25,7 @@ class _ExploreViewState extends State<ExploreView> {
           child: Image.asset(
             'assets/images/bg.png',
             fit: BoxFit.cover,
-            color: Colors.black.withOpacity(0.4),
+
             colorBlendMode: BlendMode.darken,
           ),
         ),
@@ -36,7 +36,7 @@ class _ExploreViewState extends State<ExploreView> {
           body: SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: Responsive.w(5),
+                horizontal: 16,
                 vertical: Responsive.h(2),
               ),
               child: Column(
