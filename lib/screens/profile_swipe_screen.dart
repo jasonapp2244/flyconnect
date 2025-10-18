@@ -1,18 +1,14 @@
 import 'dart:async';
-
-import 'package:flutter/material.dart';
-import 'package:flyconnect/const/colorconstraint.dart';
-import 'package:flyconnect/provider/profile_swiping_provider.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flyconnect/provider/social_feed_provider.dart';
-import 'package:provider/provider.dart';
-
-// profile_swipe_screen.dart
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+
+import 'package:flyconnect/const/colorconstraint.dart';
+import 'package:flyconnect/provider/profile_swiping_provider.dart';
+import 'package:flyconnect/provider/social_feed_provider.dart';
 
 class ProfileSwipeScreen extends StatefulWidget {
   const ProfileSwipeScreen({super.key});
@@ -289,15 +285,165 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen>
     );
   }
 
-  // ---------- Social creation sheet ----------
+  // ---------- Social creation sheet (Instagram-style) ----------
   Future<void> _showCreatePostSheet() async {
+    // First, show Instagram-style selection (Camera, Gallery, or Text Only)
+    final ImagePicker picker = ImagePicker();
+
+    // Show selection modal
+    final String? choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Create New Post',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.camera_alt,
+                      color: Colors.purple.shade700,
+                    ),
+                  ),
+                  title: const Text(
+                    'Camera',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: const Text('Take a new photo'),
+                  onTap: () => Navigator.pop(ctx, 'camera'),
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.photo_library,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                  title: const Text(
+                    'Gallery',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: const Text('Choose from your photos'),
+                  onTap: () => Navigator.pop(ctx, 'gallery'),
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.text_fields,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                  title: const Text(
+                    'Text Only',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: const Text('Share your thoughts'),
+                  onTap: () => Navigator.pop(ctx, 'text'),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (choice == null) return; // User cancelled
+
+    // Handle text-only post
+    if (choice == 'text') {
+      _showCaptionSheet(null);
+      return;
+    }
+
+    // Pick image from selected source
+    final ImageSource source = choice == 'camera'
+        ? ImageSource.camera
+        : ImageSource.gallery;
+
+    try {
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+        imageQuality: 80,
+      );
+
+      if (pickedFile == null) return; // No image selected
+
+      final File selectedImage = File(pickedFile.path);
+
+      // Show caption screen with the selected image
+      if (!mounted) return;
+
+      _showCaptionSheet(selectedImage);
+    } catch (e) {
+      // Handle error (e.g., permission denied)
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showCaptionSheet(File? imageFile) async {
     final socialProvider = Provider.of<SocialFeedProvider>(
       context,
       listen: false,
     );
-    final ImagePicker picker = ImagePicker();
-    File? selectedImage;
     final captionController = TextEditingController();
+    final bool isTextOnly = imageFile == null;
 
     await showModalBottomSheet(
       context: context,
@@ -308,93 +454,181 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen>
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(ctx).viewInsets.bottom,
           ),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Create Post",
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade200),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      Text(
+                        isTextOnly ? 'Share Your Thoughts' : 'New Post',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          final text = captionController.text.trim();
+                          if (text.isEmpty && isTextOnly) {
+                            // Show error for text-only posts without text
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Please write something to share',
+                                ),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                            return;
+                          }
+                          socialProvider.addPost(
+                            user: "You",
+                            imageFile: imageFile,
+                            caption: text.isEmpty ? "✈️ Travel moment" : text,
+                          );
+                          Navigator.pop(ctx);
+
+                          // Show success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Post shared! ✨'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'Share',
                           style: TextStyle(
-                            fontSize: 18,
+                            color: ColorConstraint.primaryColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(ctx).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () async {
-                        final XFile? picked = await picker.pickImage(
-                          source: ImageSource.gallery,
-                          imageQuality: 80,
-                        );
-                        if (picked != null) {
-                          setState(() => selectedImage = File(picked.path));
-                        }
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        height: 180,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.grey[200],
-                        ),
-                        child: selectedImage == null
-                            ? const Center(
-                                child: Text("Tap to pick image (optional)"),
-                              )
-                            : ClipRRect(
+                      ),
+                    ],
+                  ),
+                ),
+                // Image preview and caption OR text-only field
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: isTextOnly
+                      ? Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  selectedImage!,
-                                  fit: BoxFit.cover,
+                                border: Border.all(
+                                  color: Colors.orange.shade200,
+                                  width: 2,
                                 ),
                               ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: captionController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: "Write a caption...",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              final text = captionController.text.trim();
-                              socialProvider.addPost(
-                                user: "You",
-                                imageFile: selectedImage,
-                                caption: text,
-                              );
-                              Navigator.of(ctx).pop();
-                            },
-                            child: const Text("Post"),
-                          ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.create,
+                                    color: Colors.orange.shade700,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Share your travel thoughts, tips, or experiences!',
+                                      style: TextStyle(
+                                        color: Colors.orange.shade900,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: captionController,
+                              maxLines: 8,
+                              autofocus: true,
+                              decoration: InputDecoration(
+                                hintText:
+                                    'What\'s on your mind?\n\nShare your travel stories, tips, recommendations...',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey.shade400,
+                                  fontSize: 15,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: ColorConstraint.primaryColor,
+                                    width: 2,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.all(16),
+                              ),
+                              style: const TextStyle(fontSize: 15),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Image thumbnail
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                imageFile,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Caption field
+                            Expanded(
+                              child: TextField(
+                                controller: captionController,
+                                maxLines: 5,
+                                autofocus: true,
+                                decoration: const InputDecoration(
+                                  hintText: 'Write a caption...',
+                                  border: InputBorder.none,
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                ),
+                                style: const TextStyle(fontSize: 15),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                  ],
                 ),
-              );
-            },
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         );
       },
@@ -407,11 +641,7 @@ class _ProfileSwipeScreenState extends State<ProfileSwipeScreen>
 class _SocialFeedWidget extends StatelessWidget {
   final void Function() onCreateTap;
   final bool themeBlue;
-  const _SocialFeedWidget({
-    required this.onCreateTap,
-    this.themeBlue = false,
-    super.key,
-  });
+  const _SocialFeedWidget({required this.onCreateTap, this.themeBlue = false});
 
   @override
   Widget build(BuildContext context) {
@@ -464,12 +694,140 @@ class _SocialFeedWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (post.imageFile != null)
-                      Image.file(
-                        post.imageFile!,
-                        fit: BoxFit.cover,
+                    // Display image if post has one (either from file or sample image)
+                    if (post.imageFile != null || _hasAssetImage(post.id))
+                      Container(
+                        height: 300,
                         width: double.infinity,
-                        height: 260,
+                        decoration: BoxDecoration(color: Colors.grey[200]),
+                        child: Stack(
+                          children: [
+                            // Image display
+                            if (post.imageFile != null)
+                              Image.file(
+                                post.imageFile!,
+                                height: 300,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              )
+                            else
+                              Image.asset(
+                                _getPostImage(post.id),
+                                height: 300,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            // Like button overlay
+                            Positioned(
+                              right: 16,
+                              bottom: 16,
+                              child: Column(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () =>
+                                        Provider.of<SocialFeedProvider>(
+                                          context,
+                                          listen: false,
+                                        ).toggleLike(post.id),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.3),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        post.isLikedByMe
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: post.isLikedByMe
+                                            ? Colors.red
+                                            : Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '${post.likes}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  GestureDetector(
+                                    onTap: () =>
+                                        _showCommentsSheet(context, post),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.3),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.comment_outlined,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '${post.comments.length}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    // For text-only posts, show interaction buttons below
+                    if (post.imageFile == null && !_hasAssetImage(post.id))
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                post.isLikedByMe
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: post.isLikedByMe
+                                    ? Colors.red
+                                    : Colors.grey,
+                              ),
+                              onPressed: () => Provider.of<SocialFeedProvider>(
+                                context,
+                                listen: false,
+                              ).toggleLike(post.id),
+                            ),
+                            Text(
+                              '${post.likes}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            IconButton(
+                              icon: const Icon(Icons.comment_outlined),
+                              onPressed: () =>
+                                  _showCommentsSheet(context, post),
+                            ),
+                            Text(
+                              '${post.comments.length}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -477,37 +835,6 @@ class _SocialFeedWidget extends StatelessWidget {
                         vertical: 8,
                       ),
                       child: Text(post.caption),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              post.isLikedByMe
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: post.isLikedByMe
-                                  ? Colors.red
-                                  : Colors.black54,
-                            ),
-                            onPressed: () => Provider.of<SocialFeedProvider>(
-                              context,
-                              listen: false,
-                            ).toggleLike(post.id),
-                          ),
-                          Text('${post.likes}'),
-                          const SizedBox(width: 16),
-                          IconButton(
-                            icon: const Icon(Icons.comment_outlined),
-                            onPressed: () => _showCommentsSheet(context, post),
-                          ),
-                          Text('${post.comments.length}'),
-                        ],
-                      ),
                     ),
                   ],
                 ),
@@ -524,6 +851,29 @@ class _SocialFeedWidget extends StatelessWidget {
     if (diff.inMinutes < 60) return '${diff.inMinutes}m';
     if (diff.inHours < 24) return '${diff.inHours}h';
     return '${diff.inDays}d';
+  }
+
+  bool _hasAssetImage(String postId) {
+    // Check if this is a sample post with an asset image
+    return ['1', '2', '3', '4', '5'].contains(postId);
+  }
+
+  String _getPostImage(String postId) {
+    // Map post IDs to asset images
+    switch (postId) {
+      case '1':
+        return 'assets/images/craft_journey.png'; // Tokyo
+      case '2':
+        return 'assets/images/scenic_hiking.png'; // Swiss Alps
+      case '3':
+        return 'assets/images/revival_cafe.png'; // Bangkok food
+      case '4':
+        return 'assets/images/royal_palace.png'; // Santorini
+      case '5':
+        return 'assets/images/embark_journey.png'; // Bali
+      default:
+        return 'assets/images/tale.png';
+    }
   }
 
   void _showCommentsSheet(BuildContext context, Post post) {

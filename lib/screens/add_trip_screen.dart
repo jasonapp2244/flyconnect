@@ -151,8 +151,8 @@ class _AddTripScreenState extends State<AddTripScreen> {
             Text(
               'My Trips',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: Responsive.sp(28),
+                color: ColorConstraint.primaryColor,
+                fontSize: Responsive.sp(24),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -171,7 +171,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
                 Text(
                   'Stockholm, Sweden',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xffCBCBCB),
                     fontSize: Responsive.sp(16),
                   ),
                 ),
@@ -279,7 +279,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
               'Place',
               style: TextStyle(
                 color: Colors.black,
-                fontSize: Responsive.sp(14),
+                fontSize: Responsive.sp(16),
                 fontWeight: FontWeight.w500,
               ),
             ),
